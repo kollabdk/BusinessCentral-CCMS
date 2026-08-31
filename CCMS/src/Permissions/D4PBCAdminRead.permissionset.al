@@ -23,7 +23,7 @@ permissionset 62001 "D4P BC ADMIN READ"
     Caption = 'D365BC Admin Center - Read Only Access';
     Permissions =
         tabledata "D4P AppInsights Connection" = R,
-        tabledata "D4P BC Admin Center Cue" = RIM,
+        tabledata "D4P BC Admin Center Cue" = RI,
         tabledata "D4P BC App Registration" = R,
         tabledata "D4P BC Available Update" = R,
         tabledata "D4P BC Capacity Header" = R,
