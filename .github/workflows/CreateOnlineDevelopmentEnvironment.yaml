@@ -50,28 +50,28 @@ jobs:
       telemetryScopeJson: ${{ steps.init.outputs.telemetryScopeJson }}
     steps:
       - name: Dump Workflow Information
-        uses: Freddy-D4P/AL-Go/Actions/DumpWorkflowInfo@main
+        uses: microsoft/AL-Go-Actions/DumpWorkflowInfo@v9.2
         with:
           shell: pwsh
 
       - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Initialize the workflow
         id: init
-        uses: Freddy-D4P/AL-Go/Actions/WorkflowInitialize@main
+        uses: microsoft/AL-Go-Actions/WorkflowInitialize@v9.2
         with:
           shell: pwsh
 
       - name: Read settings
         id: ReadSettings
-        uses: Freddy-D4P/AL-Go/Actions/ReadSettings@main
+        uses: microsoft/AL-Go-Actions/ReadSettings@v9.2
         with:
           shell: pwsh
 
       - name: Read secrets
         id: ReadSecrets
-        uses: Freddy-D4P/AL-Go/Actions/ReadSecrets@main
+        uses: microsoft/AL-Go-Actions/ReadSecrets@v9.2
         with:
           shell: pwsh
           gitHubSecrets: ${{ toJson(secrets) }}
@@ -90,7 +90,7 @@ jobs:
             Write-Host "AdminCenterApiCredentials not provided, initiating Device Code flow"
             $ALGoHelperPath = "$([System.IO.Path]::GetTempFileName()).ps1"
             $webClient = New-Object System.Net.WebClient
-            $webClient.DownloadFile('https://raw.githubusercontent.com/Freddy-D4P/AL-Go/main/Actions/AL-Go-Helper.ps1', $ALGoHelperPath)
+            $webClient.DownloadFile('https://raw.githubusercontent.com/microsoft/AL-Go-Actions/v9.2/AL-Go-Helper.ps1', $ALGoHelperPath)
             . $ALGoHelperPath
             DownloadAndImportBcContainerHelper
             $authContext = New-BcAuthContext -includeDeviceLogin -deviceLoginTimeout ([TimeSpan]::FromSeconds(0))
@@ -109,16 +109,16 @@ jobs:
       deviceCode: ${{ needs.Initialization.outputs.deviceCode }}
     steps:
       - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Read settings
-        uses: Freddy-D4P/AL-Go/Actions/ReadSettings@main
+        uses: microsoft/AL-Go-Actions/ReadSettings@v9.2
         with:
           shell: pwsh
 
       - name: Read secrets
         id: ReadSecrets
-        uses: Freddy-D4P/AL-Go/Actions/ReadSecrets@main
+        uses: microsoft/AL-Go-Actions/ReadSecrets@v9.2
         with:
           shell: pwsh
           gitHubSecrets: ${{ toJson(secrets) }}
@@ -137,7 +137,7 @@ jobs:
           Add-Content -Encoding UTF8 -Path $env:GITHUB_OUTPUT -value "adminCenterApiCredentials=$adminCenterApiCredentials"
 
       - name: Create Development Environment
-        uses: Freddy-D4P/AL-Go/Actions/CreateDevelopmentEnvironment@main
+        uses: microsoft/AL-Go-Actions/CreateDevelopmentEnvironment@v9.2
         with:
           shell: pwsh
           token: ${{ steps.ReadSecrets.outputs.TokenForPush }}
@@ -149,7 +149,7 @@ jobs:
 
       - name: Finalize the workflow
         if: always()
-        uses: Freddy-D4P/AL-Go/Actions/WorkflowPostProcess@main
+        uses: microsoft/AL-Go-Actions/WorkflowPostProcess@v9.2
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
