@@ -1,0 +1,38 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go-Actions/v9.2/.Modules/settings.schema.json",
+  "type": "PTE",
+  "templateUrl": "https://github.com/microsoft/AL-Go-PTE@main",
+  "templateSha": "b7dd1f32feb254e07086096e8970fba1187d9a6e",
+  "githubRunner": "windows-latest-l",
+  "useGitSubmodules": "true",
+  "doNotPublishApps": true,
+  "incrementalBuilds": {
+    "mode": "modifiedApps"
+  },
+  "appSourceCopMandatoryAffixes": [
+    "KLB"
+  ],
+  "customALGoFiles": {
+    "filesToInclude": [
+      {
+        "sourceFolder": ".github",
+        "filter": "copilot-instructions.md",
+        "destinationFolder": ".github",
+        "perProject": true
+      },
+      {
+        "sourceFolder": ".vscode",
+        "filter": "mcp.json",
+        "destinationFolder": ".vscode",
+        "perProject": true
+      },
+      {
+        "sourceFolder": ".",
+        "filter": ".gitmodules",
+        "destinationFolder": ".",
+        "perProject": true
+      }
+    ],
+    "filesToExclude": []
+  }
+}
