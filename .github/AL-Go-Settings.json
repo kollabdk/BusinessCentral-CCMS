@@ -3,12 +3,12 @@
   "type": "PTE",
   "country": "w1",
   "artifact": "/sandbox/*/w1/latest",
-  "templateUrl": "https://github.com/microsoft/AL-Go-PTE@main",
+  "templateUrl": "https://github.com/kollabdk/KOLLAB-Template@main",
   "useCompilerFolder": true,
   "doNotPublishApps": true,
   "runs-on": "ubuntu-latest",
   "githubRunner": "ubuntu-latest",
   "versioningStrategy": 19,
   "RepoVersion": "0.0.2",
-  "templateSha": "b7dd1f32feb254e07086096e8970fba1187d9a6e"
+  "templateSha": "5b6198904dfa7866e393ed58dd0688a0d4d72bdc"
 }

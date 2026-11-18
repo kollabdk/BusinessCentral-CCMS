@@ -1,0 +1,106 @@
+name: "Kollab Smartcat Translation Sync"
+
+on:
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: pwsh
+
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write
+
+jobs:
+  SyncTranslations:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Hash translation files before download
+        id: hash-before
+        run: |
+          $hashes = @{}
+          Get-ChildItem -Path $env:GITHUB_WORKSPACE -Recurse -Filter '*.xlf' | Where-Object { $_.Name -notmatch '\.g\.xlf$' } | ForEach-Object {
+              $hash = (Get-FileHash -Path $_.FullName -Algorithm SHA256).Hash
+              $hashes[$_.FullName] = $hash
+              Write-Host "  Before: $($_.Name) = $hash"
+          }
+          $json = $hashes | ConvertTo-Json -Compress
+          "TRANSLATION_HASHES_BEFORE=$json" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "Hashed $($hashes.Count) translation file(s)."
+
+      - name: Download translations from Smartcat
+        run: |
+          & "$env:GITHUB_WORKSPACE\.AL-Go\KollabSmartcatDownload.ps1" -appProjectFolder $env:GITHUB_WORKSPACE
+
+      - name: Read settings
+        uses: microsoft/AL-Go-Actions/ReadSettings@v9.1
+        with:
+          shell: pwsh
+
+      - name: Read secrets
+        id: ReadSecrets
+        uses: microsoft/AL-Go-Actions/ReadSecrets@v9.1
+        with:
+          shell: pwsh
+          gitHubSecrets: ${{ toJson(secrets) }}
+          getSecrets: "ghTokenWorkflow,TokenForPush"
+          useGhTokenWorkflowForPush: "true"
+
+      - name: Detect changed files and create PR
+        env:
+          GH_TOKEN: ${{ steps.ReadSecrets.outputs.TokenForPush }}
+        run: |
+          $hashesBeforeObject = $env:TRANSLATION_HASHES_BEFORE | ConvertFrom-Json
+          $hashesBefore = @{}
+          if ($null -ne $hashesBeforeObject) {
+              $hashesBeforeObject.PSObject.Properties | ForEach-Object {
+                  $hashesBefore[$_.Name] = $_.Value
+              }
+          }
+
+          $changedFiles = @()
+          foreach ($filePath in $hashesBefore.Keys) {
+              if (-not (Test-Path $filePath)) {
+                  Write-Host "File no longer exists: $filePath"
+                  continue
+              }
+              $hashAfter = (Get-FileHash -Path $filePath -Algorithm SHA256).Hash
+              $hashBefore = $hashesBefore[$filePath]
+              if ($hashAfter -ne $hashBefore) {
+                  Write-Host "Changed: $filePath"
+                  $changedFiles += $filePath
+              } else {
+                  Write-Host "Unchanged: $(Split-Path $filePath -Leaf)"
+              }
+          }
+
+          if ($changedFiles.Count -eq 0) {
+              Write-Host "No translation files changed. Exiting."
+              exit 0
+          }
+
+          Write-Host "$($changedFiles.Count) file(s) changed. Creating PR..."
+
+          $date = Get-Date -Format 'yyyyMMdd'
+          $branchName = "translations/smartcat-sync-$date-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT"
+
+          git config user.email "actions@github.com"
+          git config user.name "GitHub Actions"
+          git checkout -b $branchName
+
+          foreach ($file in $changedFiles) {
+              git add $file
+          }
+
+          git commit -m "Sync translations from Smartcat ($date)"
+          git push origin $branchName
+
+          gh pr create `
+              --title "Sync translations from Smartcat ($date)" `
+              --body "Automated translation sync from Smartcat. Updated $($changedFiles.Count) file(s)." `
+              --base main `
+              --head $branchName
